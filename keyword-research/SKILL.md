@@ -17,6 +17,7 @@ Read and analyze the following files to understand what keywords have been resea
 
 Based on this analysis, generate a focused goal for this keyword research task. The goal should:
 - Avoid duplicating what was already researched
+- Define a clear target market and language (rotate them if user company has multiple ones)
 - Align with the current monthly/weekly strategy focus
 - Be specific enough to guide keyword discovery
 - CRITICAL : The goal must be maximum 2 lines (80 words).
@@ -40,8 +41,8 @@ Use the `keyword_planner_get_keyword_ideas` tool to generate new keyword ideas b
 
 The tool requires:
 - `seed_keyword`: Extract from your goal
-- `target_country`: Use "US" as default unless specified in strategy files
-- `target_language`: Use "en" as default unless specified in strategy files
+- `target_country`: Use the target country identified from the goal in step 1.
+- `target_language`: Use the target language identified from the goal in step 1.
 
 ## Step 4: Update Conclusion & strategy/keywords.csv
 
@@ -52,7 +53,7 @@ Two things to do (absolutely mandatory to do both otherwise this is not consider
 - Any notable patterns or insights
 - CRITICAL : The conclusion must be maximum 2 lines (80 words).
 
-2. Save the keywords found in strategy/keywords.csv respecting the file existing headers.
+2. Save the keywords found in strategy/keywords.csv respecting the file existing headers (do not forget to set the target country based on the research you performed).
 - First read the file
 - Do not add duplicates into the file.
 
