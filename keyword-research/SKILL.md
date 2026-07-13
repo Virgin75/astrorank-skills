@@ -19,6 +19,7 @@ Based on this analysis, generate a focused goal for this keyword research task. 
 - Avoid duplicating what was already researched
 - Align with the current monthly/weekly strategy focus
 - Be specific enough to guide keyword discovery
+- CRITICAL : The goal must be maximum 2 lines (80 words).
 
 ## Step 2: Update the Task File
 
@@ -42,9 +43,17 @@ The tool requires:
 - `target_country`: Use "US" as default unless specified in strategy files
 - `target_language`: Use "en" as default unless specified in strategy files
 
-## Step 4: Update Conclusion
+## Step 4: Update Conclusion & strategy/keywords.csv
 
-After completing the keyword research, update the task file's `conclusion` field with a summary of the findings, including:
+Two things to do (absolutely mandatory to do both otherwise this is not considerd as done): 
+
+1. Save the conclusion: After completing the keyword research, update the task file's `conclusion` field with a summary of the findings, including:
 - Number of keywords found
-- Top keyword ideas by search volume
 - Any notable patterns or insights
+- CRITICAL : The conclusion must be maximum 2 lines (80 words).
+
+2. Save the keywords found in strategy/keywords.csv respecting the file existing headers.
+- First read the file
+- Do not add duplicates into the file.
+
+
