@@ -54,6 +54,6 @@ Two things to do (absolutely mandatory to do both otherwise this is not consider
 - CRITICAL : The conclusion must be maximum 2 lines (80 words).
 
 2. Save the keywords found in strategy/keywords.csv respecting the file existing headers (do not forget to set the target country based on the research you performed).
-- You must use the add_new_keywords tool to update the strategy/keywords.csv. Only this is valid: it will auto deduplicate entries.
+- You must use the add-new-keywords tool to update the strategy/keywords.csv. Only this is valid: it will auto deduplicate entries.
 
 
