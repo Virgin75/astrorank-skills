@@ -1,16 +1,28 @@
 <!--
   BASE DOCUMENT — the only HTML skeleton a report ever uses.
-  Copy this file verbatim as the starting point. It contains the FULL <style>
-  block (shared retro-gaming theme) and a single .report-grid container.
-  Paste rendered chart cards (from the other templates) inside .report-grid.
+  Copy this file verbatim as the starting point. It contains:
+    1. The FULL <style> block (shared retro-gaming theme) — the ONLY CSS.
+    2. A <script> block holding a PLACEHOLDER token (CHART_JS_INLINE wrapped in
+       JS block-comment delimiters). At the very end, the inline-chart.js
+       script replaces that placeholder with the real Chart.js library (from
+       chart.umd.min.js). Keep this file SMALL on purpose — the LLM reads it
+       many times; the 200 KB library lives in chart.umd.min.js and is spliced
+       in once, mechanically, by that script.
+       NEVER paste the library into this file by hand.
+    3. The AstrorankCharts helper (bakes in the neon theme so each chart
+       template only has to pass values: labels + data + captions).
+    4. A single .report-grid container — paste rendered cards inside it.
 
   HARD RULES:
-  - The <style> block below is the ONLY CSS. Never add a second <style> tag,
-    never inline different styles, never import external stylesheets.
-  - No <script> tags. The report is sandboxed (allow-same-origin only); JS
-    will not run and will silently break rendering.
+  - The <style> block is the ONLY CSS. Never add a second <style> tag.
+  - Leave the CHART_JS_INLINE placeholder token (in the <script> block below)
+    exactly as-is. The final assembly step (inline-chart.js) replaces it. Do NOT
+    inline the library by hand and do NOT open chart.umd.min.js.
+  - The host iframe MUST allow scripts:
+        <iframe sandbox="allow-scripts allow-same-origin">
+    Charts are rendered by Chart.js into <canvas> elements via JS.
   - No <title>, no <h1> report heading, no intro/summary/footer sections.
-    The <body> contains ONE element: the .report-grid with chart cards.
+    The <body> contains ONE element: the .report-grid with cards.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -71,23 +83,12 @@
     margin-bottom: 0.85rem;
     text-shadow: 0 0 10px rgba(34,211,238,0.35);
   }
-  .axis-label {
-    font-size: 0.6rem;
-    fill: var(--dim);
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  /* chart canvas wrapper — fixed height, full width, Chart.js fills it */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 260px;
   }
-  .axis-line { stroke: var(--grid-line); stroke-width: 1; }
-  .grid-line { stroke: var(--grid-line); stroke-width: 1; stroke-dasharray: 3 4; }
-  /* shared SVG neon glow filter — reuse id="glow" inside every chart */
-
-  /* line-chart data-point hover tooltip (templates/line-chart.html).
-     Pure CSS — :hover works inside the sandboxed iframe (no JS needed). */
-  .pt { cursor: default; }
-  .pt .hit { fill: transparent; }
-  .pt .dot { transition: r 120ms ease; }
-  .pt .tip { opacity: 0; transition: opacity 120ms ease; pointer-events: none; }
-  .pt:hover .tip { opacity: 1; }
-  .pt:hover .dot { r: 4.5; }
 
   /* table (used by templates/table.html) */
   .rtable { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
@@ -109,11 +110,216 @@
   .rtable tbody tr:hover { background: rgba(6,182,212,0.05); }
   .rtable .num { color: var(--cyan-bright); }
 </style>
+
+<!-- Chart.js v4.4.3 — placeholder; replaced by inline-chart.js at the final step.
+     Do NOT edit this script tag except to keep the placeholder intact. -->
+<script>
+/*__CHART_JS_INLINE__*/
+</script>
+
+<!-- ============ AstrorankCharts helper (project theme baked in) ============ -->
+<!-- Each chart template just calls one of these with values; styling is fixed. -->
+<script>
+(function () {
+  var PALETTE = ['#22d3ee', '#a78bfa', '#f472b6', '#4ade80', '#fbbf24', '#60a5fa'];
+  var TEXT = '#e2e8f0', MUTED = '#94a3b8', DIM = '#64748b';
+  var GRID = 'rgba(148,163,184,0.14)';
+  var SURFACE = '#0c1322';
+  var FONT = "ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace";
+
+  function initDefaults() {
+    var d = window.Chart.defaults;
+    d.color = MUTED;
+    d.borderColor = GRID;
+    d.font.family = FONT;
+    d.font.size = 11;
+    var tt = d.plugins.tooltip;
+    tt.backgroundColor = 'rgba(12,19,34,0.96)';
+    tt.titleColor = '#67e8f9';
+    tt.bodyColor = TEXT;
+    tt.borderColor = 'rgba(6,182,212,0.45)';
+    tt.borderWidth = 1;
+    tt.padding = 8;
+    tt.titleFont = { family: FONT, weight: '700', size: 11 };
+    tt.bodyFont = { family: FONT, size: 11 };
+    tt.displayColors = false;
+    d.plugins.legend.labels.color = MUTED;
+    d.plugins.legend.labels.font = { family: FONT, size: 11 };
+  }
+
+  // vertical gradient fill, lazily computed once the chart area exists
+  function vGradient(c1, c2) {
+    return function (ctx) {
+      var chart = ctx.chart, area = chart.chartArea;
+      if (!area) return c1;
+      var g = chart.ctx.createLinearGradient(0, area.bottom, 0, area.top);
+      g.addColorStop(0, c2);
+      g.addColorStop(1, c1);
+      return g;
+    };
+  }
+
+  function axis(title) {
+    return {
+      title: { display: !!title, text: title, color: DIM,
+               font: { family: FONT, size: 10 } },
+      grid: { color: GRID, tickColor: GRID },
+      border: { color: GRID },
+      ticks: { color: MUTED, font: { family: FONT, size: 10 } }
+    };
+  }
+
+  function common() {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 350 },
+      plugins: { legend: { display: false } }
+    };
+  }
+
+  // center-text plugin for the doughnut total
+  var centerText = {
+    id: 'arCenterText',
+    afterDraw: function (chart) {
+      var opt = chart.options.plugins.arCenterText || {};
+      if (!opt.display) return;
+      var ctx = chart.ctx, area = chart.chartArea;
+      var cx = (area.left + area.right) / 2, cy = (area.top + area.bottom) / 2;
+      ctx.save();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = "800 20px " + FONT;
+      ctx.shadowColor = 'rgba(103,232,249,0.55)'; ctx.shadowBlur = 14;
+      ctx.fillText(opt.text, cx, cy - 8);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = MUTED;
+      ctx.font = "10px " + FONT;
+      ctx.fillText(opt.sub || '', cx, cy + 12);
+      ctx.restore();
+    }
+  };
+
+  function fmt(n) {
+    if (n === null || n === undefined || isNaN(n)) return '';
+    var abs = Math.abs(n);
+    if (abs >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (abs >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  }
+
+  var A = window.AstrorankCharts = {
+    PALETTE: PALETTE,
+    // Bar chart. opts: {labels:[..], data:[..], xLabel, yLabel, prefix, suffix}
+    bar: function (canvasId, opts) {
+      opts = opts || {};
+      var el = document.getElementById(canvasId);
+      if (!el) return null;
+      return new window.Chart(el, {
+        type: 'bar',
+        data: {
+          labels: opts.labels,
+          datasets: [{
+            data: opts.data,
+            backgroundColor: vGradient('#67e8f9', '#0891b2'),
+            hoverBackgroundColor: vGradient('#a5f3fc', '#22d3ee'),
+            borderRadius: 4,
+            borderSkipped: false,
+            borderWidth: 0,
+            barPercentage: 0.6,
+            categoryPercentage: 0.7
+          }]
+        },
+        options: Object.assign(common(), {
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: function (c) {
+              return (opts.prefix || '') + fmt(c.parsed.y) + (opts.suffix || ''); } } }
+          },
+          scales: { x: axis(opts.xLabel), y: Object.assign(axis(opts.yLabel), { beginAtZero: true }) }
+        })
+      });
+    },
+    // Line chart. opts: {labels:[..], data:[..], xLabel, yLabel, prefix, suffix}
+    line: function (canvasId, opts) {
+      opts = opts || {};
+      var el = document.getElementById(canvasId);
+      if (!el) return null;
+      return new window.Chart(el, {
+        type: 'line',
+        data: {
+          labels: opts.labels,
+          datasets: [{
+            data: opts.data,
+            borderColor: '#22d3ee',
+            borderWidth: 2.4,
+            tension: 0.35,
+            fill: true,
+            backgroundColor: vGradient('rgba(34,211,238,0.35)', 'rgba(34,211,238,0)'),
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            pointBackgroundColor: '#67e8f9',
+            pointBorderColor: '#67e8f9'
+          }]
+        },
+        options: Object.assign(common(), {
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: function (c) {
+              return (opts.prefix || '') + fmt(c.parsed.y) + (opts.suffix || ''); } } }
+          },
+          scales: { x: axis(opts.xLabel), y: Object.assign(axis(opts.yLabel), { beginAtZero: true }) }
+        })
+      });
+    },
+    // Doughnut chart. opts: {labels:[..], data:[..], totalText, totalSub}
+    doughnut: function (canvasId, opts) {
+      opts = opts || {};
+      var el = document.getElementById(canvasId);
+      if (!el) return null;
+      return new window.Chart(el, {
+        type: 'doughnut',
+        data: {
+          labels: opts.labels,
+          datasets: [{
+            data: opts.data,
+            backgroundColor: PALETTE,
+            borderColor: SURFACE,
+            borderWidth: 3,
+            hoverOffset: 6
+          }]
+        },
+        options: Object.assign(common(), {
+          cutout: '62%',
+          plugins: {
+            legend: {
+              display: true, position: 'right',
+              labels: { color: TEXT, boxWidth: 12, boxHeight: 12, padding: 10 }
+            },
+            arCenterText: {
+              display: !!opts.totalText, text: opts.totalText || '', sub: opts.totalSub || ''
+            },
+            tooltip: { callbacks: { label: function (c) {
+              var tot = c.dataset.data.reduce(function (a, b) { return a + b; }, 0);
+              var pct = tot ? Math.round(c.parsed / tot * 100) : 0;
+              return c.label + ': ' + fmt(c.parsed) + ' (' + pct + '%)'; } } }
+          }
+        }),
+        plugins: [centerText]
+      });
+    }
+  };
+
+  if (window.Chart) initDefaults();
+})();
+</script>
+<!-- ============ END AstrorankCharts helper ============ -->
 </head>
 <body>
   <!--
-    PASTE RENDERED CHART CARDS HERE.
-    One .card per item in data.json, in data.json order.
+    PASTE RENDERED CARDS HERE.
+    One .card per item in data.json, in data.json order:
+    metrics -> bar_charts -> pie_charts -> line_charts -> table.
     Metrics use class "card"; wider charts (bar/line/table) add "span-2".
   -->
   <div class="report-grid">

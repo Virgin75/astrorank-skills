@@ -1,111 +1,30 @@
 <!--
-  LINE CHART — trend over time, pure SVG, no JS.
+  LINE CHART — trend over time, rendered by Chart.js via AstrorankCharts
+  (defined in base.html). NO svg, NO manual point/area geometry.
   Item shape in data.json:
     { "name": "...", "how_to_get": "<tool + query>",
       "x_axis": "<time/category axis>", "y_axis": "<measured value>" }
 
-  The agent fetches the real (x,y) series, then fills:
-    {{NAME}}    -> .card-label
-    {{X_AXIS}}  -> bottom axis caption
-    {{Y_AXIS}}  -> rotated left axis caption
-    the <polyline class="line"> points, the <polygon class="area"> points,
-    and one <g class="pt"> PER data point. Each group holds:
-      - a transparent .hit circle (r=13) sized for easy hovering,
-      - the visible .dot circle,
-      - a .tip group (rect + value text) shown on hover (CSS in base.html).
-    Tooltip text = the point's value (formatted). For a point at (cx, cy):
-      rect x = cx-22, y = cy-32, w=44, h=20, rx=4
-      text x = cx, y = cy-18  (centered in the rect)
-    Keep one <g class="pt"> per point — do NOT merge points into a single group.
+  The agent fetches the real (x,y) series, then fills ONLY:
+    {{NAME}}    -> .card-label text
+    {{X_LABEL}} -> x-axis caption (from data.json x_axis)
+    {{Y_LABEL}} -> y-axis caption (from data.json y_axis)
+    {{LABELS}}  -> JS array of x values, e.g. ["Jul 1","Jul 8","Jul 15","Jul 24"]
+    {{DATA}}    -> JS array of y numbers (same length), e.g. [420,510,740,980,1200]
 
-  Geometry (viewBox 0 0 480 240, chart area x:40..460, y:24..196):
-    plotW=420, plotH=172. N points -> step = plotW/(N-1).
-    point x = 40 + step*index
-    point y = 196 - (value/maxVal)*172
-    area polygon = same points + bottom corners (40,196) and (460,196).
-
-  A line chart is wide — it uses span-2.
+  Canvas id MUST be unique across the whole report. A line chart is wide -> span-2.
 -->
 <div class="card span-2">
   <span class="card-label">Organic clicks — 30 days</span>
-  <svg viewBox="0 0 480 240" width="100%" role="img" style="overflow:visible;">
-    <defs>
-      <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%"  stop-color="rgba(34,211,238,0.35)"/>
-        <stop offset="100%" stop-color="rgba(34,211,238,0)"/>
-      </linearGradient>
-      <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-        <feGaussianBlur stdDeviation="1.8" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-
-    <!-- grid + baseline -->
-    <line class="grid-line" x1="40" y1="24"  x2="460" y2="24"/>
-    <line class="grid-line" x1="40" y1="67"  x2="460" y2="67"/>
-    <line class="grid-line" x1="40" y1="110" x2="460" y2="110"/>
-    <line class="grid-line" x1="40" y1="153" x2="460" y2="153"/>
-    <line class="axis-line" x1="40" y1="196" x2="460" y2="196"/>
-
-    <!-- area fill under the line -->
-    <polygon class="area" fill="url(#lineGrad)"
-             points="40,150 90,128 140,140 190,96 240,110 290,72 340,88 390,54 440,66 460,60 460,196 40,196"/>
-
-    <!-- the line itself -->
-    <polyline class="line" fill="none" stroke="#22d3ee" stroke-width="2.4"
-              stroke-linejoin="round" stroke-linecap="round" filter="url(#glow)"
-              points="40,150 90,128 140,140 190,96 240,110 290,72 340,88 390,54 440,66 460,60"/>
-
-    <!-- data points: one .pt group per point, each with a hover tooltip -->
-    <g class="pt">
-      <circle class="hit" cx="40"  cy="150" r="13"/>
-      <circle class="dot" cx="40"  cy="150" r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <g class="tip">
-        <rect x="18" y="118" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
-        <text x="40" y="132" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">420</text>
-      </g>
-    </g>
-    <g class="pt">
-      <circle class="hit" cx="140" cy="140" r="13"/>
-      <circle class="dot" cx="140" cy="140" r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <g class="tip">
-        <rect x="118" y="108" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
-        <text x="140" y="122" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">510</text>
-      </g>
-    </g>
-    <g class="pt">
-      <circle class="hit" cx="240" cy="110" r="13"/>
-      <circle class="dot" cx="240" cy="110" r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <g class="tip">
-        <rect x="218" y="78" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
-        <text x="240" y="92" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">740</text>
-      </g>
-    </g>
-    <g class="pt">
-      <circle class="hit" cx="340" cy="88" r="13"/>
-      <circle class="dot" cx="340" cy="88" r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <g class="tip">
-        <rect x="318" y="56" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
-        <text x="340" y="70" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">980</text>
-      </g>
-    </g>
-    <g class="pt">
-      <circle class="hit" cx="460" cy="60" r="13"/>
-      <circle class="dot" cx="460" cy="60" r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <g class="tip">
-        <rect x="438" y="28" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
-        <text x="460" y="42" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">1.2k</text>
-      </g>
-    </g>
-
-    <!-- a few x-axis ticks (sparse) -->
-    <text x="40"  y="210" text-anchor="middle" class="axis-label">Jul 1</text>
-    <text x="190" y="210" text-anchor="middle" class="axis-label">Jul 8</text>
-    <text x="340" y="210" text-anchor="middle" class="axis-label">Jul 15</text>
-    <text x="460" y="210" text-anchor="middle" class="axis-label">Jul 24</text>
-
-    <!-- axis captions -->
-    <text x="250" y="232" text-anchor="middle" class="axis-label">Date</text>
-    <text x="16" y="110" text-anchor="middle" class="axis-label" transform="rotate(-90 16 110)">Clicks</text>
-  </svg>
+  <div class="chart-wrap">
+    <canvas id="line1"></canvas>
+  </div>
+  <script>
+    AstrorankCharts.line("line1", {
+      xLabel: "Date",
+      yLabel: "Clicks",
+      labels: ["Jul 1", "Jul 8", "Jul 15", "Jul 24"],
+      data:   [420, 510, 740, 1200]
+    });
+  </script>
 </div>

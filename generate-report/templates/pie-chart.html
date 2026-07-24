@@ -1,64 +1,32 @@
 <!--
-  PIE / DONUT CHART — pure SVG, no JS.
+  PIE / DOUGHNUT CHART — rendered by Chart.js via AstrorankCharts
+  (defined in base.html). NO svg arc math, NO dasharray offsets.
   Item shape in data.json:
     { "name": "...", "how_to_get": "<tool + query>",
       "labels": "<what segments represent>", "values": "<what slice size is>" }
 
-  The agent fetches the real label/value pairs, then fills:
-    {{NAME}}    -> .card-label
-    {{LABELS}}  -> legend caption
-    one <path class="slice"> + legend <li> per segment: color, label, value, %
+  The agent fetches the real label/value pairs, then fills ONLY:
+    {{NAME}}       -> .card-label text
+    {{LABELS}}     -> JS array of segment names, e.g. ["Organic","Paid","Referral"]
+    {{DATA}}       -> JS array of numbers (same length), e.g. [1760,1050,590]
+    {{TOTAL_TEXT}} -> center big number (sum, formatted), e.g. "3.4k"
+    {{TOTAL_SUB}}  -> center caption, e.g. "total"
 
-  Donut geometry (viewBox 0 0 240 240, center 110,110, r=80, stroke-width=34):
-    Each segment is a <circle> with stroke-dasharray trick:
-      circumference C = 2 * pi * 80 = 502.65
-      segment length = (value/total) * C
-      dasharray = "<segLen> <C-segLen>"
-      dashoffset accumulates: -(sum of previous segLens), rotated -90deg to start at top.
-    Color order from palette: --c1..--c6, then repeat.
-
-  A pie chart does NOT need span-2 (square-ish); omit it unless it looks cramped.
+  Colors come from the project palette automatically (cyan, purple, pink,
+  green, amber, blue) in order. Canvas id MUST be unique across the report.
+  A pie chart does NOT need span-2.
 -->
 <div class="card">
   <span class="card-label">Traffic by source</span>
-  <div style="display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap;">
-    <svg viewBox="0 0 240 240" width="170" height="170" style="flex-shrink:0;">
-      <circle cx="110" cy="110" r="80" fill="none" stroke="#0a1323" stroke-width="34"/>
-      <!-- segments — stroke-dasharray="segLen rest", dashoffset shifts start; rotate -90 to start at 12 o'clock -->
-      <g transform="rotate(-90 110 110)" fill="none" stroke-width="34">
-        <!-- seg1: 52% -> len=261.4 -->
-        <circle cx="110" cy="110" r="80" stroke="#22d3ee"
-                stroke-dasharray="261.4 502.65" stroke-dashoffset="0"
-                style="filter:drop-shadow(0 0 4px rgba(34,211,238,0.5));"/>
-        <!-- seg2: 31% -> len=155.8, offset -261.4 -->
-        <circle cx="110" cy="110" r="80" stroke="#a78bfa"
-                stroke-dasharray="155.8 502.65" stroke-dashoffset="-261.4"
-                style="filter:drop-shadow(0 0 4px rgba(167,139,250,0.5));"/>
-        <!-- seg3: 17% -> len=85.5, offset -(261.4+155.8)=-417.2 -->
-        <circle cx="110" cy="110" r="80" stroke="#f472b6"
-                stroke-dasharray="85.5 502.65" stroke-dashoffset="-417.2"
-                style="filter:drop-shadow(0 0 4px rgba(244,114,182,0.5));"/>
-      </g>
-      <!-- center label -->
-      <text x="110" y="106" text-anchor="middle" class="mono" fill="#fff" font-size="20" font-weight="800">3.4k</text>
-      <text x="110" y="124" text-anchor="middle" class="axis-label">total</text>
-    </svg>
-    <ul style="list-style:none;display:flex;flex-direction:column;gap:0.42rem;font-size:0.78rem;">
-      <li style="display:flex;align-items:center;gap:0.5rem;">
-        <span style="width:0.7rem;height:0.7rem;border-radius:3px;background:#22d3ee;box-shadow:0 0 6px rgba(34,211,238,0.6);"></span>
-        <span style="color:var(--text);">Organic</span>
-        <span class="mono" style="margin-left:auto;color:var(--muted);">52%</span>
-      </li>
-      <li style="display:flex;align-items:center;gap:0.5rem;">
-        <span style="width:0.7rem;height:0.7rem;border-radius:3px;background:#a78bfa;box-shadow:0 0 6px rgba(167,139,250,0.6);"></span>
-        <span style="color:var(--text);">Paid</span>
-        <span class="mono" style="margin-left:auto;color:var(--muted);">31%</span>
-      </li>
-      <li style="display:flex;align-items:center;gap:0.5rem;">
-        <span style="width:0.7rem;height:0.7rem;border-radius:3px;background:#f472b6;box-shadow:0 0 6px rgba(244,114,182,0.6);"></span>
-        <span style="color:var(--text);">Referral</span>
-        <span class="mono" style="margin-left:auto;color:var(--muted);">17%</span>
-      </li>
-    </ul>
+  <div class="chart-wrap">
+    <canvas id="pie1"></canvas>
   </div>
+  <script>
+    AstrorankCharts.doughnut("pie1", {
+      labels:     ["Organic", "Paid", "Referral"],
+      data:       [1760, 1050, 590],
+      totalText:  "3.4k",
+      totalSub:   "total"
+    });
+  </script>
 </div>
