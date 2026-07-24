@@ -9,7 +9,14 @@
     {{X_AXIS}}  -> bottom axis caption
     {{Y_AXIS}}  -> rotated left axis caption
     the <polyline class="line"> points, the <polygon class="area"> points,
-    and one <g class="pt"> per data point with its value label.
+    and one <g class="pt"> PER data point. Each group holds:
+      - a transparent .hit circle (r=13) sized for easy hovering,
+      - the visible .dot circle,
+      - a .tip group (rect + value text) shown on hover (CSS in base.html).
+    Tooltip text = the point's value (formatted). For a point at (cx, cy):
+      rect x = cx-22, y = cy-32, w=44, h=20, rx=4
+      text x = cx, y = cy-18  (centered in the rect)
+    Keep one <g class="pt"> per point — do NOT merge points into a single group.
 
   Geometry (viewBox 0 0 480 240, chart area x:40..460, y:24..196):
     plotW=420, plotH=172. N points -> step = plotW/(N-1).
@@ -49,13 +56,46 @@
               stroke-linejoin="round" stroke-linecap="round" filter="url(#glow)"
               points="40,150 90,128 140,140 190,96 240,110 290,72 340,88 390,54 440,66 460,60"/>
 
-    <!-- data points + value labels -->
+    <!-- data points: one .pt group per point, each with a hover tooltip -->
     <g class="pt">
-      <circle cx="40"  cy="150" r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <circle cx="140" cy="140" r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <circle cx="240" cy="110" r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <circle cx="340" cy="88"  r="3" fill="#67e8f9" filter="url(#glow)"/>
-      <circle cx="460" cy="60"  r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <circle class="hit" cx="40"  cy="150" r="13"/>
+      <circle class="dot" cx="40"  cy="150" r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <g class="tip">
+        <rect x="18" y="118" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
+        <text x="40" y="132" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">420</text>
+      </g>
+    </g>
+    <g class="pt">
+      <circle class="hit" cx="140" cy="140" r="13"/>
+      <circle class="dot" cx="140" cy="140" r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <g class="tip">
+        <rect x="118" y="108" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
+        <text x="140" y="122" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">510</text>
+      </g>
+    </g>
+    <g class="pt">
+      <circle class="hit" cx="240" cy="110" r="13"/>
+      <circle class="dot" cx="240" cy="110" r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <g class="tip">
+        <rect x="218" y="78" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
+        <text x="240" y="92" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">740</text>
+      </g>
+    </g>
+    <g class="pt">
+      <circle class="hit" cx="340" cy="88" r="13"/>
+      <circle class="dot" cx="340" cy="88" r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <g class="tip">
+        <rect x="318" y="56" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
+        <text x="340" y="70" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">980</text>
+      </g>
+    </g>
+    <g class="pt">
+      <circle class="hit" cx="460" cy="60" r="13"/>
+      <circle class="dot" cx="460" cy="60" r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <g class="tip">
+        <rect x="438" y="28" width="44" height="20" rx="4" fill="#0c1322" stroke="rgba(6,182,212,0.45)"/>
+        <text x="460" y="42" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">1.2k</text>
+      </g>
     </g>
 
     <!-- a few x-axis ticks (sparse) -->

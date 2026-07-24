@@ -80,6 +80,15 @@
   .grid-line { stroke: var(--grid-line); stroke-width: 1; stroke-dasharray: 3 4; }
   /* shared SVG neon glow filter — reuse id="glow" inside every chart */
 
+  /* line-chart data-point hover tooltip (templates/line-chart.html).
+     Pure CSS — :hover works inside the sandboxed iframe (no JS needed). */
+  .pt { cursor: default; }
+  .pt .hit { fill: transparent; }
+  .pt .dot { transition: r 120ms ease; }
+  .pt .tip { opacity: 0; transition: opacity 120ms ease; pointer-events: none; }
+  .pt:hover .tip { opacity: 1; }
+  .pt:hover .dot { r: 4.5; }
+
   /* table (used by templates/table.html) */
   .rtable { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
   .rtable th {

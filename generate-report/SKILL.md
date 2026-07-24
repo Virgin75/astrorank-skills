@@ -23,10 +23,11 @@ You receive, in the prompt:
 - **Report description** — what the report is about (context only; do NOT render it as a title).
 - **Tools to use** — MCP servers/connectors to fetch the real values.
 
-The data structure lives at `reports/<id>/data.json` (sibling of the output dir).
+The data structure lives at `reports/<id>/data.json` (sibling of the output dir). This file already exists, do not try to create it. If it does not exist, just stop and inform the user.
 
 ## data.json schema
 
+This file already exists, read it first based on the report path you are given.
 The object has up to five top-level keys; each is a list. Omitted/empty keys
 produce no output. Every item has a `name` and a `how_to_get` (the tool + query
 that returns the item's real data).
