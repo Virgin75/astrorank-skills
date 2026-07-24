@@ -1,0 +1,68 @@
+<!--
+  BAR CHART — vertical bars, pure SVG, no JS.
+  Item shape in data.json:
+    { "name": "...", "how_to_get": "<tool + query>",
+      "x_axis": "<what categories are>", "y_axis": "<what the bar height is>" }
+
+  The agent fetches the real category/value pairs, then fills:
+    {{NAME}}     -> .card-label
+    {{X_AXIS}}   -> bottom axis caption
+    {{Y_AXIS}}   -> rotated left axis caption
+    one <g class="bar"> per category: {{CATEGORY_LABEL}}, {{VALUE_LABEL}}, bar height
+
+  A bar chart is wide — it uses span-2.
+  Math reference (viewBox 0 0 480 240, chart area x:40..460, y:24..196):
+    plotW = 420, bar count N -> slot = plotW/N, bar width = slot*0.55
+    maxVal scales so the tallest bar = bar-area height (172px).
+    bar x = 40 + slot*index + (slot-barW)/2
+    bar y = 196 - (value/maxVal)*172 ;  bar height = (value/maxVal)*172
+-->
+<div class="card span-2">
+  <span class="card-label">Clicks by page</span>
+  <svg viewBox="0 0 480 240" width="100%" role="img" style="overflow:visible;">
+    <defs>
+      <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#67e8f9"/>
+        <stop offset="100%" stop-color="#0891b2"/>
+      </linearGradient>
+      <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="2.2" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- horizontal grid lines -->
+    <line class="grid-line" x1="40" y1="24"  x2="460" y2="24"/>
+    <line class="grid-line" x1="40" y1="67"  x2="460" y2="67"/>
+    <line class="grid-line" x1="40" y1="110" x2="460" y2="110"/>
+    <line class="grid-line" x1="40" y1="153" x2="460" y2="153"/>
+    <!-- baseline -->
+    <line class="axis-line" x1="40" y1="196" x2="460" y2="196"/>
+
+    <!-- bars: sample of 4 — replicate per real category -->
+    <g class="bar" filter="url(#glow)">
+      <rect x="72"  y="78"  width="42" height="118" rx="3" fill="url(#barGrad)"/>
+      <text x="93"  y="70"  text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">520</text>
+      <text x="93"  y="210" text-anchor="middle" class="axis-label">Home</text>
+    </g>
+    <g class="bar" filter="url(#glow)">
+      <rect x="162" y="114" width="42" height="82"  rx="3" fill="url(#barGrad)"/>
+      <text x="183" y="106" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">360</text>
+      <text x="183" y="210" text-anchor="middle" class="axis-label">Blog</text>
+    </g>
+    <g class="bar" filter="url(#glow)">
+      <rect x="252" y="142" width="42" height="54"  rx="3" fill="url(#barGrad)"/>
+      <text x="273" y="134" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">240</text>
+      <text x="273" y="210" text-anchor="middle" class="axis-label">Pricing</text>
+    </g>
+    <g class="bar" filter="url(#glow)">
+      <rect x="342" y="162" width="42" height="34"  rx="3" fill="url(#barGrad)"/>
+      <text x="363" y="154" text-anchor="middle" class="mono" fill="#67e8f9" font-size="10" font-weight="700">150</text>
+      <text x="363" y="210" text-anchor="middle" class="axis-label">Docs</text>
+    </g>
+
+    <!-- axis captions -->
+    <text x="250" y="232" text-anchor="middle" class="axis-label">Page</text>
+    <text x="16" y="110" text-anchor="middle" class="axis-label" transform="rotate(-90 16 110)">Clicks</text>
+  </svg>
+</div>

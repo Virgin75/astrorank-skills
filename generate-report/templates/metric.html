@@ -1,0 +1,21 @@
+<!--
+  METRIC CARD — single headline number + optional unit/sublabel.
+  Item shape in data.json:
+    { "name": "...", "how_to_get": "<tool + query that returns THE value>" }
+
+  The agent fetches the real value via how_to_get, then fills:
+    {{NAME}}   -> .card-label text
+    {{VALUE}}  -> the big number (formatted)
+    {{UNIT}}   -> optional unit suffix (%, $, k ...) or remove the <span>
+    {{SUB}}    -> optional one-line context, or remove the <p>
+
+  A metric card is narrow — it does NOT use span-2.
+-->
+<div class="card">
+  <span class="card-label">{{NAME}}</span>
+  <div class="mono" style="display:flex;align-items:baseline;gap:0.3rem;">
+    <span style="font-size:2.1rem;font-weight:800;color:#fff;text-shadow:0 0 14px rgba(103,232,249,0.55);letter-spacing:-0.02em;">1&nbsp;284</span>
+    <span style="font-size:0.95rem;color:var(--cyan-bright);font-weight:600;">%</span>
+  </div>
+  <p style="margin-top:0.45rem;font-size:0.72rem;color:var(--muted);">vs 1&nbsp;150 last week</p>
+</div>

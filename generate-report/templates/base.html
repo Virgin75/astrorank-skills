@@ -1,0 +1,126 @@
+<!--
+  BASE DOCUMENT — the only HTML skeleton a report ever uses.
+  Copy this file verbatim as the starting point. It contains the FULL <style>
+  block (shared retro-gaming theme) and a single .report-grid container.
+  Paste rendered chart cards (from the other templates) inside .report-grid.
+
+  HARD RULES:
+  - The <style> block below is the ONLY CSS. Never add a second <style> tag,
+    never inline different styles, never import external stylesheets.
+  - No <script> tags. The report is sandboxed (allow-same-origin only); JS
+    will not run and will silently break rendering.
+  - No <title>, no <h1> report heading, no intro/summary/footer sections.
+    The <body> contains ONE element: the .report-grid with chart cards.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root {
+    --bg:        #080d1a;
+    --surface:   #0c1322;
+    --surface-2: #0a1323;
+    --cyan:      #22d3ee;
+    --cyan-bright:#67e8f9;
+    --cyan-deep: #06b6d4;
+    --text:      #e2e8f0;
+    --muted:     #94a3b8;
+    --dim:       #64748b;
+    --border:    rgba(255,255,255,0.06);
+    --border-cyan: rgba(6,182,212,0.25);
+    --grid-line: rgba(148,163,184,0.14);
+    --c1:#22d3ee; --c2:#a78bfa; --c3:#f472b6; --c4:#4ade80; --c5:#fbbf24; --c6:#60a5fa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 1.25rem;
+  }
+  .mono {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  }
+  .report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    align-items: start;
+  }
+  @media (min-width: 720px) {
+    .report-grid { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+    .span-2 { grid-column: span 2; }
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.15rem;
+    box-shadow: 0 0 0 1px rgba(6,182,212,0.05), 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .card-label {
+    display: block;
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cyan);
+    margin-bottom: 0.85rem;
+    text-shadow: 0 0 10px rgba(34,211,238,0.35);
+  }
+  .axis-label {
+    font-size: 0.6rem;
+    fill: var(--dim);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .axis-line { stroke: var(--grid-line); stroke-width: 1; }
+  .grid-line { stroke: var(--grid-line); stroke-width: 1; stroke-dasharray: 3 4; }
+  /* shared SVG neon glow filter — reuse id="glow" inside every chart */
+
+  /* table (used by templates/table.html) */
+  .rtable { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .rtable th {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--cyan);
+    background: rgba(6,182,212,0.07);
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--border-cyan);
+    text-align: right;
+  }
+  .rtable td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    text-align: right;
+  }
+  .rtable tbody tr:nth-child(even) { background: rgba(255,255,255,0.018); }
+  .rtable tbody tr:hover { background: rgba(6,182,212,0.05); }
+  .rtable .num { color: var(--cyan-bright); }
+</style>
+</head>
+<body>
+  <!--
+    PASTE RENDERED CHART CARDS HERE.
+    One .card per item in data.json, in data.json order.
+    Metrics use class "card"; wider charts (bar/line/table) add "span-2".
+  -->
+  <div class="report-grid">
+
+    <!-- example metric card (replace / remove) =========================== -->
+    <div class="card">
+      <span class="card-label">Organic clicks</span>
+      <!-- metric body — see templates/metric.html -->
+    </div>
+
+    <!-- example bar chart (replace / remove) ============================= -->
+    <div class="card span-2">
+      <span class="card-label">Clicks by page</span>
+      <!-- bar chart body — see templates/bar-chart.html -->
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!--
+  LINE CHART — trend over time, pure SVG, no JS.
+  Item shape in data.json:
+    { "name": "...", "how_to_get": "<tool + query>",
+      "x_axis": "<time/category axis>", "y_axis": "<measured value>" }
+
+  The agent fetches the real (x,y) series, then fills:
+    {{NAME}}    -> .card-label
+    {{X_AXIS}}  -> bottom axis caption
+    {{Y_AXIS}}  -> rotated left axis caption
+    the <polyline class="line"> points, the <polygon class="area"> points,
+    and one <g class="pt"> per data point with its value label.
+
+  Geometry (viewBox 0 0 480 240, chart area x:40..460, y:24..196):
+    plotW=420, plotH=172. N points -> step = plotW/(N-1).
+    point x = 40 + step*index
+    point y = 196 - (value/maxVal)*172
+    area polygon = same points + bottom corners (40,196) and (460,196).
+
+  A line chart is wide — it uses span-2.
+-->
+<div class="card span-2">
+  <span class="card-label">Organic clicks — 30 days</span>
+  <svg viewBox="0 0 480 240" width="100%" role="img" style="overflow:visible;">
+    <defs>
+      <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="rgba(34,211,238,0.35)"/>
+        <stop offset="100%" stop-color="rgba(34,211,238,0)"/>
+      </linearGradient>
+      <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="1.8" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- grid + baseline -->
+    <line class="grid-line" x1="40" y1="24"  x2="460" y2="24"/>
+    <line class="grid-line" x1="40" y1="67"  x2="460" y2="67"/>
+    <line class="grid-line" x1="40" y1="110" x2="460" y2="110"/>
+    <line class="grid-line" x1="40" y1="153" x2="460" y2="153"/>
+    <line class="axis-line" x1="40" y1="196" x2="460" y2="196"/>
+
+    <!-- area fill under the line -->
+    <polygon class="area" fill="url(#lineGrad)"
+             points="40,150 90,128 140,140 190,96 240,110 290,72 340,88 390,54 440,66 460,60 460,196 40,196"/>
+
+    <!-- the line itself -->
+    <polyline class="line" fill="none" stroke="#22d3ee" stroke-width="2.4"
+              stroke-linejoin="round" stroke-linecap="round" filter="url(#glow)"
+              points="40,150 90,128 140,140 190,96 240,110 290,72 340,88 390,54 440,66 460,60"/>
+
+    <!-- data points + value labels -->
+    <g class="pt">
+      <circle cx="40"  cy="150" r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <circle cx="140" cy="140" r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <circle cx="240" cy="110" r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <circle cx="340" cy="88"  r="3" fill="#67e8f9" filter="url(#glow)"/>
+      <circle cx="460" cy="60"  r="3" fill="#67e8f9" filter="url(#glow)"/>
+    </g>
+
+    <!-- a few x-axis ticks (sparse) -->
+    <text x="40"  y="210" text-anchor="middle" class="axis-label">Jul 1</text>
+    <text x="190" y="210" text-anchor="middle" class="axis-label">Jul 8</text>
+    <text x="340" y="210" text-anchor="middle" class="axis-label">Jul 15</text>
+    <text x="460" y="210" text-anchor="middle" class="axis-label">Jul 24</text>
+
+    <!-- axis captions -->
+    <text x="250" y="232" text-anchor="middle" class="axis-label">Date</text>
+    <text x="16" y="110" text-anchor="middle" class="axis-label" transform="rotate(-90 16 110)">Clicks</text>
+  </svg>
+</div>
