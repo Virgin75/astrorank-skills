@@ -18,12 +18,11 @@ Charts are drawn by **Chart.js** into `<canvas>` elements via the
 theme. You only pass **values** (labels + data arrays + captions) — you never
 compute SVG geometry, never write Chart.js configs, never restyle anything.
 
-`base.html` is kept SMALL and LLM-friendly: its `<script>` block holds only the
-literal placeholder `/*__CHART_JS_INLINE__*/`. The real ~200 KB Chart.js
-library lives in `chart.umd.min.js` (a sibling file you **never open**). At the
-very end of the workflow you run `inline-chart.js`, which mechanically replaces
-that placeholder in your written report with the library — making the file
-self-contained for the sandboxed `srcdoc` iframe. Never inline the library by hand.
+`base.html` stays SMALL and LLM-friendly: it loads Chart.js via a plain
+`<script src="chart.umd.min.js">` tag from a **sibling file** — the ~200 KB
+library is never inlined. When you generate a report you copy BOTH the HTML
+and `chart.umd.min.js` into the report's output folder. Never open or edit
+`chart.umd.min.js`, and never inline the library by hand.
 
 **Core principle: the templates are fixed. You fill them with data; you never
 redesign them, never add sections, never add a report title.**
@@ -61,11 +60,15 @@ that returns the item's real data).
    the `how_to_get` instructions. Charts need actual data points (a labels
    array + a numbers array); metrics need an actual value. Never output a
    template with its sample/placeholder data.
-3. **Start from `templates/base.html`** — copy it to the report path using a
-   bash file copy (e.g. `cp`). It is SMALL (~7 KB): `<style>` (the only CSS),
-   the `<script>` with the `/*__CHART_JS_INLINE__*/` **placeholder** (do NOT
-   touch it), the `AstrorankCharts` helper, and the `.report-grid` container.
-   Never open or read `chart.umd.min.js`.
+3. **Copy both files into the report's output folder** using bash:
+   ```
+   mkdir -p reports/<id>
+   cp generate-report/templates/base.html        reports/<id>/<file>.html
+   cp generate-report/templates/chart.umd.min.js reports/<id>/chart.umd.min.js
+   ```
+   `base.html` is SMALL (~12 KB): `<style>` (the only CSS), the
+   `<script src="chart.umd.min.js">` tag, the `AstrorankCharts` helper, and the
+   `.report-grid` container. Never open or read `chart.umd.min.js`.
 4. **Render each item** with its matching template (`templates/<type>.html`),
    filling in ONLY the placeholders named in the template's top comment:
    - metric / table: the visible text fields.
@@ -78,16 +81,9 @@ that returns the item's real data).
 5. **Assemble**: place every rendered `.card` inside `.report-grid`, in the
    same order as `data.json`'s keys (metrics → bar_charts → pie_charts →
    line_charts → table). Remove the two example cards from `base.html`.
-6. **Write** the complete HTML (still containing the placeholder) to the report path.
-7. **Final step — inline the library.** Run exactly this, substituting your
-   report path:
-   ```
-   node generate-report/templates/inline-chart.js reports/<id>/<file>.html
-   ```
-   It replaces `/*__CHART_JS_INLINE__*/` in the written file with Chart.js
-   (from `chart.umd.min.js`) and prints the byte count. **Do this LAST**, after
-   all edits. Do NOT edit the report again afterward (that would overwrite the
-   splice). Until you run this, the charts will not render.
+6. **Write** the final HTML to `reports/<id>/<file>.html`. Done — no splice
+   step, no post-processing. The report loads Chart.js via its sibling
+   `chart.umd.min.js` at runtime.
 
 ## Template reference
 
@@ -95,19 +91,23 @@ All templates live in `templates/` next to this file.
 
 | file | renders | width class |
 |------|---------|-------------|
-| `base.html` | document shell + shared `<style>` + Chart.js **placeholder** + `AstrorankCharts` helper + grid | — |
+| `base.html` | document shell + shared `<style>` + `<script src="chart.umd.min.js">` + `AstrorankCharts` helper + grid | — |
 | `metric.html` | headline number card | `card` (narrow) |
 | `bar-chart.html` | vertical bars (Chart.js) | `card span-2` |
 | `pie-chart.html` | donut + legend (Chart.js) | `card` |
 | `line-chart.html` | trend line + area (Chart.js) | `card span-2` |
 | `table.html` | data table | `card span-2` |
-| `chart.umd.min.js` | Chart.js v4.4.3 library source (NEVER open/edit; consumed by `inline-chart.js`) | — |
-| `inline-chart.js` | final-assembly script: splices the library into a report's placeholder | — |
+| `chart.umd.min.js` | Chart.js v4.4.3 library (NEVER open/edit; copied alongside each report) | — |
 
 Charts run via JavaScript inside a sandboxed iframe. The host app MUST render
-the report with `<iframe sandbox="allow-scripts allow-same-origin">`
-(`srcdoc` or `src` both work — the Chart.js library is inlined into the report
-by `inline-chart.js`, so the page needs no network access).
+the report with `<iframe sandbox="allow-scripts allow-same-origin">`.
+
+**`srcdoc` caveat:** if the host loads the report via `srcdoc`, a relative
+`<script src="chart.umd.min.js">` resolves against the **parent page's** URL,
+not the report file — so the host must also serve `chart.umd.min.js` at that
+resolvable location. If the host serves the report as a real file URL, the
+sibling file resolves naturally. Either way the report HTML + the lib file must
+be co-located.
 
 ## STRICT rules (violating any = failure)
 
@@ -121,20 +121,18 @@ by `inline-chart.js`, so the page needs no network access).
   You fill placeholders with data; you do not restyle, restructure, or "improve" them.
 - **The `<style>` block appears exactly once**, from `base.html`. Never add a
   second `<style>`, never inline conflicting styles, never import external CSS.
-- **Leave the `/*__CHART_JS_INLINE__*/` placeholder exactly as-is** in
-  `base.html`. Do NOT replace it by hand, do NOT paste the library in, do NOT
-  open `chart.umd.min.js`. The final workflow step (`inline-chart.js`) is the
-  ONLY thing that touches it.
+- **Keep `<script src="chart.umd.min.js">` exactly as-is** in `base.html`. Do
+  NOT inline the library, do NOT open `chart.umd.min.js`, do NOT change the src
+  to a CDN or absolute URL. The only `<script src>` in the page is this one.
 - **Chart calls must use the `AstrorankCharts` helper only.** Do NOT hand-write
-  `new Chart(...)` configs, do NOT import a different charting library, do NOT
-  add `<script src="...">` to any CDN. The only `<script>` tags in the page are
-  the ones already in `base.html` plus the one-line calls inside each chart card.
+  `new Chart(...)` configs, do NOT import a different charting library. The only
+  inline `<script>` tags are the `AstrorankCharts` helper in `base.html` plus
+  the one-line calls inside each chart card.
 - **Every `<canvas id>` is unique within the report.**
-- **Run `inline-chart.js` as the LAST step** on the written report file, and do
-  not edit the report afterward. Until you do, the placeholder remains and the
-  charts will not render.
-- **Self-contained.** No external images, fonts, or scripts. After the splice
-  the page renders offline from inline content alone.
+- **Copy `chart.umd.min.js` into the report's output folder** alongside the
+  HTML. Without that sibling file, the `<script src>` 404s and charts stay blank.
+- **No external resources.** No external images, fonts, or other scripts beyond
+  the sibling `chart.umd.min.js`.
 - **Every value is real data** fetched via tools. Never leave the sample/
   placeholder numbers (520, 3.4k, 1760, …) from the templates in the output.
 
@@ -155,9 +153,8 @@ reused for bar/line series. You do not pass colors in the chart calls.
 | Left sample numbers from the template | Replace every value with fetched data. |
 | Invented a chart not in `data.json` | Remove it. Only `data.json` items are rendered. |
 | Hand-wrote a `new Chart(...)` config / added a CDN `<script src>` | Remove it; use the `AstrorankCharts.bar/line/doughnut` call from the template as-is. |
-| Pasted the Chart.js library into `base.html` by hand / opened `chart.umd.min.js` | Revert `base.html` to the placeholder; run `inline-chart.js` at the end instead. |
-| Forgot to run `inline-chart.js` (placeholder still in the report) | Run `node generate-report/templates/inline-chart.js <report>` as the final step. |
-| Edited the report again after running `inline-chart.js` (overwriting the splice) | Re-run `inline-chart.js`; it is idempotent-safe only if the placeholder still exists — otherwise copy `base.html` fresh and redo. |
+| Inlined the Chart.js library into `base.html` / opened `chart.umd.min.js` | Revert `base.html` to `<script src="chart.umd.min.js">`; copy the lib as a sibling file instead. |
+| Charts blank / `<script src>` 404s | You forgot to copy `chart.umd.min.js` into the report's output folder, or the host's `srcdoc` base URL can't resolve the relative path — see the srcdoc caveat above. |
 | Two charts share the same canvas id | Make each id unique (`bar1`, `bar2`, …) and pass it to the helper. |
 | Duplicated the `<style>` block per card | One `<style>` in `<head>`, from `base.html`. |
 | New chart "design" / custom colors | Revert to the template's exact markup and palette. |

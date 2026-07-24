@@ -2,22 +2,18 @@
   BASE DOCUMENT — the only HTML skeleton a report ever uses.
   Copy this file verbatim as the starting point. It contains:
     1. The FULL <style> block (shared retro-gaming theme) — the ONLY CSS.
-    2. A <script> block holding a PLACEHOLDER token (CHART_JS_INLINE wrapped in
-       JS block-comment delimiters). At the very end, the inline-chart.js
-       script replaces that placeholder with the real Chart.js library (from
-       chart.umd.min.js). Keep this file SMALL on purpose — the LLM reads it
-       many times; the 200 KB library lives in chart.umd.min.js and is spliced
-       in once, mechanically, by that script.
-       NEVER paste the library into this file by hand.
+    2. A <script src="chart.umd.min.js"> tag that loads Chart.js from a SIBLING
+       file. When generating a report you copy BOTH this HTML and
+       chart.umd.min.js into the report's output folder. The library is never
+       inlined — base.html stays small and LLM-readable.
     3. The AstrorankCharts helper (bakes in the neon theme so each chart
        template only has to pass values: labels + data + captions).
     4. A single .report-grid container — paste rendered cards inside it.
 
   HARD RULES:
   - The <style> block is the ONLY CSS. Never add a second <style> tag.
-  - Leave the CHART_JS_INLINE placeholder token (in the <script> block below)
-    exactly as-is. The final assembly step (inline-chart.js) replaces it. Do NOT
-    inline the library by hand and do NOT open chart.umd.min.js.
+  - Keep <script src="chart.umd.min.js"> as-is. Never inline the library, never
+    open chart.umd.min.js, never change the src to a CDN or absolute URL.
   - The host iframe MUST allow scripts:
         <iframe sandbox="allow-scripts allow-same-origin">
     Charts are rendered by Chart.js into <canvas> elements via JS.
@@ -111,11 +107,9 @@
   .rtable .num { color: var(--cyan-bright); }
 </style>
 
-<!-- Chart.js v4.4.3 — placeholder; replaced by inline-chart.js at the final step.
-     Do NOT edit this script tag except to keep the placeholder intact. -->
-<script>
-/*__CHART_JS_INLINE__*/
-</script>
+<!-- Chart.js v4.4.3 — loaded from a sibling file. The skill copies
+     chart.umd.min.js into the report's output folder alongside this HTML. -->
+<script src="chart.umd.min.js"></script>
 
 <!-- ============ AstrorankCharts helper (project theme baked in) ============ -->
 <!-- Each chart template just calls one of these with values; styling is fixed. -->
